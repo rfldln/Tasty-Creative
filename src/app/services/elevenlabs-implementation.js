@@ -31,6 +31,13 @@ export const API_KEY_PROFILES = {
       { name: 'OF Lala', voiceId: 'pFxPgV5pV6WbTBIfVh0M', category: 'professional' },
     ]
   },
+  account_5: { 
+    name: "OF Bronwin's voice", 
+    description: 'Backup account for high-volume usage',
+    voices: [
+      { name: 'OF Bronwin', voiceId: 'rFfKB0Jvn1Pj082TgJl2', category: 'professional' },
+    ]
+  },
 };
 
 // Available ElevenLabs models

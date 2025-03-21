@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
       account_2: process.env.ELEVENLABS_KEY_ACCOUNT_2,
       account_3: process.env.ELEVENLABS_KEY_ACCOUNT_3,
       account_4: process.env.ELEVENLABS_KEY_ACCOUNT_4,
+      account_5: process.env.ELEVENLABS_KEY_ACCOUNT_5, // Added new account
     };
     
     const apiKey = API_KEY_MAP[apiKeyProfileKey];
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
     return NextResponse.json(data);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error checking balance:', error);
     
     // Return mock data instead of throwing error (matching your original implementation)
