@@ -42,6 +42,60 @@ import {
   COMFY_UI_CONFIG
 } from './services/comfyui-implementation';
 
+// Define TypeScript interfaces for our data structures
+interface ApiKeyBalance {
+  character?: {
+    limit: number;
+    remaining: number;
+    used: number;
+  };
+  status?: string;
+}
+
+interface Voice {
+  name: string;
+  voiceId: string;
+  category?: string;
+}
+
+interface HistoryItem {
+  history_item_id: string;
+  text: string;
+  date_unix: number;
+  voice_id: string;
+  voice_name?: string;
+}
+
+interface HistoryAudio {
+  audioUrl: string;
+  audioBlob: Blob;
+}
+
+interface GeneratedAudio {
+  audioUrl: string;
+  audioBlob: Blob;
+  profile?: string;
+  voiceName?: string;
+}
+
+interface GeneratedImage {
+  imageUrl: string;
+  filename?: string;
+}
+
+interface VoiceSettings {
+  stability: number;
+  clarity: number;
+  speed: number;
+  styleExaggeration: number;
+  speakerBoost: boolean;
+}
+
+interface GenerationProgress {
+  value?: number;
+  max?: number;
+}
+
 const TastyCreative = () => {
   const [activeTab, setActiveTab] = useState('voice'); // Set voice as default tab
   const [isPaid, setIsPaid] = useState(false);
@@ -61,42 +115,42 @@ const TastyCreative = () => {
   const [styleExaggeration, setStyleExaggeration] = useState(0.3);
   const [speakerBoost, setSpeakerBoost] = useState(true);
   const [isGeneratingVoice, setIsGeneratingVoice] = useState(false);
-  const [generatedAudio, setGeneratedAudio] = useState(null);
+  const [generatedAudio, setGeneratedAudio] = useState<GeneratedAudio | null>(null);
   const [voiceError, setVoiceError] = useState('');
   
   // History states
-  const [historyEntries, setHistoryEntries] = useState([]);
-  const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
+  const [historyEntries, setHistoryEntries] = useState<HistoryItem[]>([]);
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<HistoryItem | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isLoadingHistoryAudio, setIsLoadingHistoryAudio] = useState(false);
-  const [historyAudio, setHistoryAudio] = useState(null);
+  const [historyAudio, setHistoryAudio] = useState<HistoryAudio | null>(null);
   const [historyError, setHistoryError] = useState('');
   const [showHistory, setShowHistory] = useState(false); // Toggle state for history
   
   // API Key Profile state
   const [selectedApiKeyProfile, setSelectedApiKeyProfile] = useState('account_1');
-  const [apiKeyBalance, setApiKeyBalance] = useState(null);
+  const [apiKeyBalance, setApiKeyBalance] = useState<ApiKeyBalance | null>(null);
   const [isCheckingBalance, setIsCheckingBalance] = useState(false);
-  const [availableVoices, setAvailableVoices] = useState([]);
+  const [availableVoices, setAvailableVoices] = useState<Voice[]>([]);
 
   // ComfyUI-related states
   const [comfyUIStatus, setComfyUIStatus] = useState('disconnected');
   const [negativePrompt, setNegativePrompt] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
-  const [availableModels, setAvailableModels] = useState([]);
-  const [availableSamplers, setAvailableSamplers] = useState([]);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [availableSamplers, setAvailableSamplers] = useState<string[]>([]);
   const [selectedSampler, setSelectedSampler] = useState('euler_ancestral');
   const [imageWidth, setImageWidth] = useState(512);
   const [imageHeight, setImageHeight] = useState(512);
   const [steps, setSteps] = useState(20);
   const [cfgScale, setCfgScale] = useState(7.5);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedImage, setGeneratedImage] = useState(null);
+  const [generatedImage, setGeneratedImage] = useState<GeneratedImage | null>(null);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [imageError, setImageError] = useState('');
 
-  const audioRef = useRef(null);
-  const historyAudioRef = useRef(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const historyAudioRef = useRef<HTMLAudioElement | null>(null);
   const characterLimit = 1000;
 
   // Initialize the voice parameters cache
@@ -160,7 +214,7 @@ const TastyCreative = () => {
       );
       
       setHistoryEntries(result.items || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading history:', error);
       setHistoryError('Failed to load history from ElevenLabs');
     } finally {
@@ -194,7 +248,7 @@ const TastyCreative = () => {
         
         // Reset selected voice when changing profiles
         setSelectedVoice(profileVoices[0]?.voiceId || '');
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching API data:', error);
         setApiKeyBalance({
           character: {
@@ -276,7 +330,7 @@ const TastyCreative = () => {
       
       // Refresh history
       reloadHistoryWithDelay();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Voice generation error:', error);
       setVoiceError(error.message || 'Failed to generate voice');
       setGenerationStatus('');
@@ -306,7 +360,7 @@ const TastyCreative = () => {
         cfgScale: cfgScale,
         width: imageWidth,
         height: imageHeight,
-        onProgress: (progress) => {
+        onProgress: (progress: GenerationProgress) => {
           // Update progress based on step count
           if (progress.value && progress.max) {
             setGenerationProgress(Math.floor((progress.value / progress.max) * 100));
@@ -315,7 +369,7 @@ const TastyCreative = () => {
       });
       
       setGeneratedImage(imageResult);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Image generation error:', error);
       setImageError(error.message || 'Failed to generate image');
     } finally {
@@ -336,7 +390,7 @@ const TastyCreative = () => {
     }
   };
 
-  const handlePlayHistoryAudio = async (historyItem) => {
+  const handlePlayHistoryAudio = async (historyItem: HistoryItem) => {
     try {
       setIsLoadingHistoryAudio(true);
       setSelectedHistoryItem(historyItem);
@@ -352,7 +406,7 @@ const TastyCreative = () => {
           historyAudioRef.current.play();
         }
       }, 100);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error playing history audio:', error);
       setHistoryError('Failed to load audio from history');
     } finally {
@@ -367,7 +421,7 @@ const TastyCreative = () => {
     }
   };
 
-  const handleDownloadHistoryAudio = (historyItem) => {
+  const handleDownloadHistoryAudio = (historyItem: HistoryItem) => {
     if (historyAudio?.audioBlob) {
       downloadAudio(historyAudio.audioBlob, `${historyItem.voice_name || 'voice'}-${historyItem.history_item_id}.mp3`);
     }
@@ -393,7 +447,7 @@ const TastyCreative = () => {
   };
   
   // Updated to use history item instead of just text
-  const handleUseHistoryText = (historyItem) => {
+  const handleUseHistoryText = (historyItem: HistoryItem) => {
     // Still set the text
     setVoiceText(historyItem.text);
     
@@ -425,16 +479,16 @@ const TastyCreative = () => {
   };
   
   // Format date for display
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: number) => {
     try {
       const date = new Date(dateString);
       return date.toLocaleString();
     } catch (e) {
-      return dateString;
+      return dateString.toString();
     }
   };
   
-  const truncateText = (text, maxLength = 30) => {
+  const truncateText = (text: string | undefined, maxLength = 30) => {
     return text && text.length > maxLength 
       ? text.substring(0, maxLength) + '...' 
       : (text || '');
